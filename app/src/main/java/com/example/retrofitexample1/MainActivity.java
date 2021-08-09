@@ -17,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView textView_result;
 
+    private JsonPlaceHolderApi jsonPlaceHolderApi;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,10 +31,14 @@ public class MainActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
-        JsonPlaceHolderApi jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+        jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
 
+        //getPosts();
+        getComment();
+    }
+
+    private void getPosts() {
         Call<List<Post>> call = jsonPlaceHolderApi.getPosts();
-
         call.enqueue(new Callback<List<Post>>() {
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
@@ -54,6 +60,37 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
+                textView_result.setText(t.getMessage());
+            }
+        });
+    }
+
+    private void getComment() {
+        Call<List<Comment>> call = jsonPlaceHolderApi.getComments(3);
+
+        call.enqueue(new Callback<List<Comment>>() {
+            @Override
+            public void onResponse(Call<List<Comment>> call, Response<List<Comment>> response) {
+                if (!response.isSuccessful()) {
+                    textView_result.setText("Code: " + response.code());
+                    return;
+                }
+
+                List<Comment> comments = response.body();
+                for (Comment comment : comments) {
+                    String content = " ";
+                    content += "Post Id: " + comment.getPostId() + "\n";
+                    content += "ID: " + comment.getId() + "\n";
+                    content += "Email: " + comment.getEmail() + "\n";
+                    content += "Name: " + comment.getName() + "\n";
+                    content += "Text: " + comment.getText() + "\n\n";
+
+                    textView_result.append(content);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Comment>> call, Throwable t) {
                 textView_result.setText(t.getMessage());
             }
         });
